@@ -1,5 +1,5 @@
 # Will_et_al_2020
-This repository contains annotated code for the function that performs enrichment analysis of GO/PFAM terms using a hypergeometric test. This function was used to perform functional enrichments in Will et al. 2020. 
+This repository contains annotated code for the function that performs functional enrichment analysis of GO/PFAM terms using a hypergeometric test, used in Will et al. 2020. 
 
 - Will_et_al_2020
   - Enrichment_analysis
@@ -15,5 +15,7 @@ Citation:
 Genetic Underpinnings of Host Manipulation by Ophiocordyceps as Revealed by Comparative Transcriptomics.
 I Will, B Das, T Trinh, A Brachmann, RA Ohm, C de Bekker. 
 G3: Genes, Genomes, Genetics 10 (7), 2275-2296
+
+Link to paper: https://bit.ly/2MF0eyC
 
 For questions or queries, please contact Biplabendu Das (email: biplabendu[dot]das@gmail.com)
