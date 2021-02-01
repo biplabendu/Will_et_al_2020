@@ -171,4 +171,4 @@ knitr::kable(enriched_ophio)
 #'# Converting the R script to a markdown file.
 #'
 #' Type the following in the R console:
-#' knitr::spin('./tutorial/enrichment_fungal_rnaseq_IW.R')
+#' knitr::spin('./enrichment_fungal_rnaseq_BD.R')
