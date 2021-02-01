@@ -2,13 +2,10 @@
 
 
 # Enrichment analysis (hypergeometric test) for the fungal DEGs
-This code runs the enrichment_analysis function for the fungal DEGs
-as a sanity check to see if the function works as expected and gives us 
-the same results as using any other program for enrichment analysis.
+This code runs the enrichment_analysis() function for the fungal DEGs
 
 
 ```r
-library(goseq)
 library(tidyverse)
 ```
 
@@ -19,8 +16,7 @@ Read the complete Cflo file with ant annotations and the time course rnaseq data
 
 
 ```r
-all_genes <- read.csv("./Enrichment_analysis/Ophio/FullBlast_EC05_RNAseq_orignal_copy_26Aug19.csv", header = T, stringsAsFactors = FALSE)
-## Error in file(file, "rt"): cannot open the connection
+all_genes <- read.csv("./../FullBlast_EC05_RNAseq_orignal_copy_26Aug19.csv", header = T, stringsAsFactors = FALSE)
 ```
 
 ```r
