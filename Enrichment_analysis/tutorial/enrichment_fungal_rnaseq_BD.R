@@ -15,8 +15,9 @@ library(tidyverse)
 #' Set your working directory to the folder with the csv files
 # /* setwd("~/OneDrive - University of Central Florida/loop_test/results") */
 
-#' Read the complete Cflo file with ant annotations and the time course rnaseq data
-all_genes <- read.csv("./Enrichment_analysis/Ophio/FullBlast_EC05_RNAseq_orignal_copy_26Aug19.csv", header = T, stringsAsFactors = FALSE)
+#' Read the file with Ophio gene annotations
+#' [Replace the following file with your organism's gene annotation; ensure the column names GO, PFAM, etc are the same]
+all_genes <- read.csv("./FullBlast_EC05_RNAseq_orignal_copy_26Aug19.csv", header = T, stringsAsFactors = FALSE)
 #+ eval=FALSE
 names(all_genes)
 
@@ -24,28 +25,26 @@ names(all_genes)
 #' Select only the columns that we need.
 #' 
 all_genes <- all_genes[,c("arb2_gene","GO","PFAM","signalp","TMHMM")]
-#' head(all_genes)
+head(all_genes)
 
 #' There seem to be duplicate rows for the same gene. Keep only one row per gene.
 all_genes <- dplyr::distinct((all_genes))
-#' head(all_genes)
-summary(all_genes)
+head(all_genes)
 
-#'# GO enrichment only.
+
+#'# The following code performs GO enrichment only.
+#' Repeat the same protocol for any other enrichment (PFAM, signalp, etc)
 #'
-#' Is there any NAs in the GO column, meaning, are there fungal genes with no GO annotations
+#' Is there any NAs in the GO column, meaning, are there fungal genes with no GO annotations?
 summary(is.na(as.factor(all_genes$GO)))
 
-#' Need a filtering step here. 
-#' Basically, which genes should I include in the background? For now, I am using everything.
-
-#' Now, let's replace the NAs in GOs and pfams with "no_annot"
+#' Now, let's replace the NAs in GOs and PFAMs with the term "no_annot"
 all_genes[is.na(all_genes)] <- "no_annot"
 #' Check for NAs again
 summary(is.na(as.factor(all_genes$GO)))
 #' There is no more NAs since we replaced them with the category "no annot".
 
-#' Now, let's flatten the file - for each gene, one GO term per line.
+#' Now, let's flatten the file (aim: for each gene, one GO term per line)
 
 all_genes_gos <- all_genes %>%
   dplyr::mutate(go_split = str_split(GO, "; ")) %>% 
@@ -60,7 +59,7 @@ head(all_genes_gos)
 unique(all_genes_gos$gene_name) %>% 
   length()  ## sanity check to see all starting genes have made it to the flattened file
 
-#' How many unique GO terms are there in the Ophio genome
+#' How many unique GO terms are there in the Ophio genome?
 unique(all_genes_gos$GO) %>% 
   length() 
 
@@ -69,31 +68,50 @@ unique(all_genes_gos$GO) %>%
 
 enrichment_analysis <- function(background, geneset) {
   
+  # this is going to be your test geneset
   genes <- geneset
   
-  df.whole <- background
+  # background genes to run enrichment against 
+  df.whole <- background # (the flattened 'all_genes_gos' file above)
   
   go_to_desc <- dplyr::distinct(as.data.frame(background[-1]))
   
+  # subset the background file to keep only genes in the test set
   df.test <- background %>% 
     filter(gene_name %in% genes)
-  annot_terms <- unique(df.whole[[2]])  ## all unique GO terms in the background data set
   
+  ## all unique GO terms in the background data set
+  annot_terms <- unique(df.whole[[2]])  
+  
+  ## Create an empty list to save results from the enrichment test
   df.list <- list()
   
+  
   for (i in 1:length(annot_terms)) {
+    
+    # assign the annotation term to test for enrichment
     annot <- annot_terms[i]
+    
+    # number of genes in the test set
     k <- length(genes)
+    
+    # number of genes that have the annotation term in the background geneset
     m <- df.whole %>% 
       filter(GO == annot) %>% 
       nrow()
+    
+    # number of genes that DON'T have the annotation term in the background geneset
     n <- length(unique(df.whole[[1]])) - m
+    
+    # number of genes that have the annotation term in the test geneset
     x <- df.test %>% 
       filter(GO == annot) %>% 
       nrow()
     
+    ### Perform the hypergeometric test
     pval <- dhyper(x, m, n, k, log=F)
     
+    # Save the results into the list
     df.list[[i]] <- data.frame(GO = annot_terms[i],
                                x = x,
                                k=k,
@@ -105,29 +123,38 @@ enrichment_analysis <- function(background, geneset) {
     
   }
   
+  
+  # Row-bind the results for all tested annotation terms
   df.enriched <- bind_rows(df.list, .id = "column_label") %>% 
     select(-column_label) %>% 
     arrange(pVal) %>% 
+    ## Adjust the p-values for multiple hypothesis testing (BH-correction)
     mutate(adj_pVal = p.adjust(pVal, "BH")) %>% 
-    filter(pVal < 0.1 | adj_pVal < 0.1) %>%
+    ## Filter to keep annotation terms that have adjusted p-value < 0.1
+    filter(adj_pVal < 0.1) %>%
+    ## add a column with the descriptions for each of the GO terms
     left_join(go_to_desc, by="GO")
+  
+  
+  # Return the results as a data.frame
   return(df.enriched);
   
 }
 
 #+
-#'# Read and format the DEGs from IW's rnaseq data
+#'# Read a test geneset
 
-#' read the RNASeq file for Ophio DEGs
-ophio_rnaseq <- read.csv("./Enrichment_analysis/Ophio/enrichtest_fungal.csv", stringsAsFactors = F, header = T)
+#' read file
+ophio_rnaseq <- read.csv("./enrichtest_fungal.csv", stringsAsFactors = F, header = T)
 
-#' I just need the gene names, let's only keep that.
+#' I just need the gene names (first column), let's only keep that.
 ophio_rnaseq <- ophio_rnaseq[,1, drop = T]   ## drop = T is necessary for the function to work. 
 head(ophio_rnaseq)
 
 #'# Let's run the enrichment analysis
 #+
 ophio_genes_enrich <- enrichment_analysis(background = all_genes_gos, geneset = ophio_rnaseq)
+
 #' What are top most hits?
 knitr::kable(head(ophio_genes_enrich))
 #' What about the tail?
@@ -144,4 +171,4 @@ knitr::kable(enriched_ophio)
 #'# Converting the R script to a markdown file.
 #'
 #' Type the following in the R console:
-#' knitr::spin('./Enrichment_analysis/Ophio/enrichment_fungal_rnaseq_IW.R')
+#' knitr::spin('./tutorial/enrichment_fungal_rnaseq_IW.R')
