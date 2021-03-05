@@ -14,7 +14,7 @@ Genetic Underpinnings of Host Manipulation by Ophiocordyceps as Revealed by Comp
 I Will, B Das, T Trinh, A Brachmann, RA Ohm, C de Bekker. 
 G3: Genes, Genomes, Genetics 10 (7), 2275-2296
 
-Link to paper: https://bit.ly/2MF0eyC
+Link to paper: https://academic.oup.com/g3journal/article/10/7/2275/6026297?login=true
 
 For questions or queries, please contact Biplabendu Das (email: biplabendu[dot]das@gmail.com)
 
